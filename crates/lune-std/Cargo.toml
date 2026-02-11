@@ -24,6 +24,8 @@ default = [
     "serde",
     "stdio",
     "task",
+    "mongo",
+    "memory",
 ]
 
 datetime = ["dep:lune-std-datetime"]
@@ -36,6 +38,8 @@ roblox = ["dep:lune-std-roblox"]
 serde = ["dep:lune-std-serde"]
 stdio = ["dep:lune-std-stdio"]
 task = ["dep:lune-std-task"]
+mongo = ["dep:lune-std-mongo"]
+memory = ["dep:lune-std-memory"]
 
 [dependencies]
 mlua = { version = "0.11.4", features = ["luau"] }
@@ -60,3 +64,5 @@ lune-std-roblox = { optional = true, version = "0.3.4", path = "../lune-std-robl
 lune-std-serde = { optional = true, version = "0.3.4", path = "../lune-std-serde" }
 lune-std-stdio = { optional = true, version = "0.3.4", path = "../lune-std-stdio" }
 lune-std-task = { optional = true, version = "0.3.4", path = "../lune-std-task" }
+lune-std-mongo = { optional = true, version = "0.3.4", path = "../lune-std-mongo" }
+lune-std-memory = { optional = true, version = "0.3.4", path = "../lune-std-memory" }

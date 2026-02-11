@@ -105,6 +105,7 @@ impl Runtime {
             feature = "std-serde",
             feature = "std-stdio",
             feature = "std-task",
+            feature = "std-mongo",
         ))]
         {
             lune_std::set_global_version(&lua, env!("CARGO_PKG_VERSION"));
@@ -127,6 +128,7 @@ impl Runtime {
             feature = "std-serde",
             feature = "std-stdio",
             feature = "std-task",
+            feature = "std-mongo",
         ))]
         {
             let g_table = lune_std::LuneStandardGlobal::GTable;
@@ -363,6 +365,8 @@ impl Runtime {
             feature = "std-serde",
             feature = "std-stdio",
             feature = "std-task",
+            feature = "std-mongo",
+            feature = "std-memory",
         ))]
         {
             lune_std::inject_std(self.lua.clone())?;
