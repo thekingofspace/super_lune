@@ -3537,8 +3537,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 
 [[package]]
-<<<<<<< Updated upstream
-=======
 name = "socket2"
 version = "0.5.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3559,7 +3557,6 @@ dependencies = [
 ]
 
 [[package]]
->>>>>>> Stashed changes
 name = "stable_deref_trait"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3876,12 +3873,9 @@ dependencies = [
  "pin-project-lite",
  "signal-hook-registry",
  "slab",
-<<<<<<< Updated upstream
-=======
  "socket2 0.6.2",
  "tokio-macros",
  "windows-sys 0.59.0",
->>>>>>> Stashed changes
 ]
 
 [[package]]

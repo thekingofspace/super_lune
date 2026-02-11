@@ -117,6 +117,29 @@ export type MongoCollection = {
 	) -> (),
 
 	--[=[
+	Updates multiple documents matching the filter.
+
+	@param filter The filter object
+	@param update The update document (ex: { ["$set"] = {...} })
+	]=]
+	updateMany: (
+		self: MongoCollection,
+		filter: { [string]: any },
+		update: { [string]: any }
+	) -> (),
+
+	--[=[
+	Deletes multiple documents matching the filter.
+
+	@param filter The filter object
+	]=]
+	deleteMany: (
+		self: MongoCollection,
+		filter: { [string]: any }
+	) -> (),
+
+
+	--[=[
 		Deletes a single document matching the filter.
 
 		@param filter The filter object

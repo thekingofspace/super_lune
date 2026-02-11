@@ -201,6 +201,30 @@ impl UserData for LuaMongoCollection {
             Ok(())
         });
 
+        methods.add_async_method(
+            "updateMany",
+            |_, this, (f, u): (LuaValue, LuaValue)| async move {
+                let filter = lua_value_to_document(f)?;
+                let update = lua_value_to_document(u)?;
+
+                TOKIO_RUNTIME
+                    .block_on(async { this.inner.update_many(filter, update).await })
+                    .into_lua_err()?;
+
+                Ok(())
+            },
+        );
+
+        methods.add_async_method("deleteMany", |_, this, value: LuaValue| async move {
+            let filter = lua_value_to_document(value)?;
+
+            TOKIO_RUNTIME
+                .block_on(async { this.inner.delete_many(filter).await })
+                .into_lua_err()?;
+
+            Ok(())
+        });
+
         methods.add_async_method("countDocuments", |_, this, value: LuaValue| async move {
             let filter = lua_value_to_document(value)?;
 
