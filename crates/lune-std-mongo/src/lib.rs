@@ -1,5 +1,7 @@
 #![allow(clippy::cargo_common_metadata)]
+#![allow(clippy::collapsible_if)]
 #![allow(clippy::missing_errors_doc)]
+#![allow(clippy::too_many_lines)]
 
 use futures::StreamExt;
 use lune_utils::TableBuilder;
@@ -7,7 +9,6 @@ use mlua::{UserData, UserDataMethods, prelude::*};
 use mongodb::{
     Client,
     bson::{Bson, DateTime, Document, oid::ObjectId},
-    options::{ClientOptions, FindOneOptions, FindOptions, UpdateOptions},
 };
 use std::sync::{Arc, LazyLock};
 use tokio::runtime::Runtime;
@@ -71,7 +72,7 @@ pub struct LuaMongoCollection {
 async fn mongo_connect(_: Lua, uri: String) -> LuaResult<LuaMongoClient> {
     let client = TOKIO_RUNTIME
         .block_on(async {
-            let options = ClientOptions::parse(uri).await?;
+            let options = mongodb::options::ClientOptions::parse(uri).await?;
             Client::with_options(options)
         })
         .into_lua_err()?;
@@ -103,8 +104,6 @@ impl UserData for LuaMongoDatabase {
 
 impl UserData for LuaMongoCollection {
     fn add_methods<M: UserDataMethods<Self>>(methods: &mut M) {
-        /* INSERT ONE */
-
         methods.add_async_method("insertOne", |lua, this, value: LuaValue| async move {
             let doc = lua_value_to_document(value.clone())?;
 
@@ -125,25 +124,25 @@ impl UserData for LuaMongoCollection {
             Ok(LuaValue::Nil)
         });
 
-        /* FIND ONE (with options) */
-
         methods.add_async_method(
             "findOne",
             |lua, this, (filter_value, options): (LuaValue, Option<LuaTable>)| async move {
                 let filter = lua_value_to_document(filter_value)?;
-                let mut opts = FindOneOptions::default();
+                let mut query = this.inner.find_one(filter);
 
                 if let Some(opt_table) = options {
-                    if let Ok(sort) = opt_table.get::<_, LuaValue>("sort") {
-                        opts.sort = Some(lua_value_to_document(sort)?);
+                    if let Ok(sort) = opt_table.get::<LuaValue>("sort") {
+                        let sort_doc = lua_value_to_document(sort)?;
+                        query = query.sort(sort_doc);
                     }
-                    if let Ok(projection) = opt_table.get::<_, LuaValue>("projection") {
-                        opts.projection = Some(lua_value_to_document(projection)?);
+                    if let Ok(projection) = opt_table.get::<LuaValue>("projection") {
+                        let proj_doc = lua_value_to_document(projection)?;
+                        query = query.projection(proj_doc);
                     }
                 }
 
                 let result = TOKIO_RUNTIME
-                    .block_on(async { this.inner.find_one(filter, opts).await })
+                    .block_on(async { query.await })
                     .into_lua_err()?;
 
                 match result {
@@ -153,31 +152,31 @@ impl UserData for LuaMongoCollection {
             },
         );
 
-        /* FIND (with full options) */
-
         methods.add_async_method(
             "find",
             |lua, this, (filter_value, options): (LuaValue, Option<LuaTable>)| async move {
                 let filter = lua_value_to_document(filter_value)?;
-                let mut opts = FindOptions::default();
+                let mut query = this.inner.find(filter);
 
                 if let Some(opt_table) = options {
-                    if let Ok(sort) = opt_table.get::<_, LuaValue>("sort") {
-                        opts.sort = Some(lua_value_to_document(sort)?);
+                    if let Ok(sort) = opt_table.get::<LuaValue>("sort") {
+                        let sort_doc = lua_value_to_document(sort)?;
+                        query = query.sort(sort_doc);
                     }
-                    if let Ok(limit) = opt_table.get::<_, i64>("limit") {
-                        opts.limit = Some(limit);
+                    if let Ok(limit) = opt_table.get::<i64>("limit") {
+                        query = query.limit(limit);
                     }
-                    if let Ok(skip) = opt_table.get::<_, u64>("skip") {
-                        opts.skip = Some(skip);
+                    if let Ok(skip) = opt_table.get::<u64>("skip") {
+                        query = query.skip(skip);
                     }
-                    if let Ok(projection) = opt_table.get::<_, LuaValue>("projection") {
-                        opts.projection = Some(lua_value_to_document(projection)?);
+                    if let Ok(projection) = opt_table.get::<LuaValue>("projection") {
+                        let proj_doc = lua_value_to_document(projection)?;
+                        query = query.projection(proj_doc);
                     }
                 }
 
                 let mut cursor = TOKIO_RUNTIME
-                    .block_on(async { this.inner.find(filter, opts).await })
+                    .block_on(async { query.await })
                     .into_lua_err()?;
 
                 let result_table = lua.create_table()?;
@@ -193,89 +192,72 @@ impl UserData for LuaMongoCollection {
             },
         );
 
-        /* UPDATE ONE */
-
         methods.add_async_method(
             "updateOne",
             |_, this, (f, u, options): (LuaValue, LuaValue, Option<LuaTable>)| async move {
                 let filter = lua_value_to_document(f)?;
                 let update = lua_value_to_document(u)?;
-                let mut opts = UpdateOptions::default();
+                let mut query = this.inner.update_one(filter, update);
 
                 if let Some(opt_table) = options {
-                    if let Ok(upsert) = opt_table.get::<_, bool>("upsert") {
-                        opts.upsert = Some(upsert);
+                    if let Ok(upsert) = opt_table.get::<bool>("upsert") {
+                        query = query.upsert(upsert);
                     }
                 }
 
                 TOKIO_RUNTIME
-                    .block_on(async { this.inner.update_one(filter, update, opts).await })
+                    .block_on(async { query.await })
                     .into_lua_err()?;
 
                 Ok(())
             },
         );
-
-        /* UPDATE MANY */
 
         methods.add_async_method(
             "updateMany",
             |_, this, (f, u, options): (LuaValue, LuaValue, Option<LuaTable>)| async move {
                 let filter = lua_value_to_document(f)?;
                 let update = lua_value_to_document(u)?;
-                let mut opts = UpdateOptions::default();
+                let mut query = this.inner.update_many(filter, update);
 
                 if let Some(opt_table) = options {
-                    if let Ok(upsert) = opt_table.get::<_, bool>("upsert") {
-                        opts.upsert = Some(upsert);
+                    if let Ok(upsert) = opt_table.get::<bool>("upsert") {
+                        query = query.upsert(upsert);
                     }
                 }
 
                 TOKIO_RUNTIME
-                    .block_on(async { this.inner.update_many(filter, update, opts).await })
+                    .block_on(async { query.await })
                     .into_lua_err()?;
 
                 Ok(())
             },
         );
 
-        /* DELETE ONE */
-
         methods.add_async_method("deleteOne", |_, this, filter| async move {
             let filter = lua_value_to_document(filter)?;
-
             TOKIO_RUNTIME
                 .block_on(async { this.inner.delete_one(filter).await })
                 .into_lua_err()?;
-
             Ok(())
         });
-
-        /* DELETE MANY */
 
         methods.add_async_method("deleteMany", |_, this, filter| async move {
             let filter = lua_value_to_document(filter)?;
-
             TOKIO_RUNTIME
                 .block_on(async { this.inner.delete_many(filter).await })
                 .into_lua_err()?;
-
             Ok(())
         });
 
-        /* COUNT */
-
         methods.add_async_method("countDocuments", |_, this, filter| async move {
             let filter = lua_value_to_document(filter)?;
-
             TOKIO_RUNTIME
                 .block_on(async { this.inner.count_documents(filter).await })
                 .into_lua_err()
         });
     }
 }
-
-/* BSON ↔ LUA */
 
 fn lua_value_to_document(value: LuaValue) -> LuaResult<Document> {
     match lua_to_bson(value)? {
@@ -304,12 +286,17 @@ fn lua_to_bson(value: LuaValue) -> LuaResult<Bson> {
 
         LuaValue::Table(table) => {
             let mut doc = Document::new();
+
             for pair in table.pairs::<LuaValue, LuaValue>() {
                 let (k, v) = pair?;
-                if let LuaValue::String(key) = k {
-                    doc.insert(key.to_str()?.to_string(), lua_to_bson(v)?);
+
+                if let LuaValue::String(key) = k
+                    && let Ok(key) = key.to_str()
+                {
+                    doc.insert(key.to_string(), lua_to_bson(v)?);
                 }
             }
+
             Bson::Document(doc)
         }
 
@@ -338,8 +325,6 @@ fn bson_to_lua(lua: Lua, value: Bson) -> LuaResult<LuaValue> {
         _ => LuaValue::Nil,
     })
 }
-
-/* OBJECT API */
 
 fn create_object_api(lua: &Lua) -> LuaResult<LuaTable> {
     let table = lua.create_table()?;
