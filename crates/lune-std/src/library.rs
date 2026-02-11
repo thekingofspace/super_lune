@@ -18,6 +18,7 @@ pub enum LuneStandardLibrary {
     #[cfg(feature = "serde")]    Serde,
     #[cfg(feature = "stdio")]    Stdio,
     #[cfg(feature = "roblox")]   Roblox,
+    #[cfg(feature = "mongo")]   Mongo,
 }
 
 impl LuneStandardLibrary {
@@ -36,6 +37,7 @@ impl LuneStandardLibrary {
         #[cfg(feature = "serde")]    Self::Serde,
         #[cfg(feature = "stdio")]    Self::Stdio,
         #[cfg(feature = "roblox")]   Self::Roblox,
+        #[cfg(feature = "mongo")]   Self::Mongo,
     ];
 
     /**
@@ -56,6 +58,7 @@ impl LuneStandardLibrary {
             #[cfg(feature = "serde")]    Self::Serde    => "serde",
             #[cfg(feature = "stdio")]    Self::Stdio    => "stdio",
             #[cfg(feature = "roblox")]   Self::Roblox   => "roblox",
+            #[cfg(feature = "mongo")]   Self::Mongo   => "mongo",
 
             _ => unreachable!("no standard library enabled"),
         }
@@ -79,6 +82,7 @@ impl LuneStandardLibrary {
             #[cfg(feature = "serde")]    Self::Serde    => lune_std_serde::typedefs(),
             #[cfg(feature = "stdio")]    Self::Stdio    => lune_std_stdio::typedefs(),
             #[cfg(feature = "roblox")]   Self::Roblox   => lune_std_roblox::typedefs(),
+            #[cfg(feature = "mongo")]   Self::Mongo   => lune_std_mongo::typedefs(),
 
             _ => unreachable!("no standard library enabled"),
         }
@@ -106,6 +110,7 @@ impl LuneStandardLibrary {
             #[cfg(feature = "serde")]    Self::Serde    => lune_std_serde::module(mod_lua),
             #[cfg(feature = "stdio")]    Self::Stdio    => lune_std_stdio::module(mod_lua),
             #[cfg(feature = "roblox")]   Self::Roblox   => lune_std_roblox::module(mod_lua),
+            #[cfg(feature = "mongo")]   Self::Mongo   => lune_std_mongo::module(mod_lua),
 
             _ => unreachable!("no standard library enabled"),
         };
@@ -135,6 +140,7 @@ impl FromStr for LuneStandardLibrary {
             #[cfg(feature = "serde")]    "serde"    => Self::Serde,
             #[cfg(feature = "stdio")]    "stdio"    => Self::Stdio,
             #[cfg(feature = "roblox")]   "roblox"   => Self::Roblox,
+            #[cfg(feature = "mongo")]   "mongo"   => Self::Mongo,
 
             _ => {
                 return Err(format!(

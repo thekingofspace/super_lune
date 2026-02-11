@@ -30,6 +30,7 @@ std-roblox = ["dep:lune-std", "lune-std/roblox"]
 std-serde = ["dep:lune-std", "lune-std/serde"]
 std-stdio = ["dep:lune-std", "lune-std/stdio"]
 std-task = ["dep:lune-std", "lune-std/task"]
+std-mongo = ["dep:lune-std", "lune-std/mongo"]
 
 std = [
     "std-datetime",
@@ -42,6 +43,7 @@ std = [
     "std-serde",
     "std-stdio",
     "std-task",
+    "std-mongo",
 ]
 
 cli = ["dep:clap", "dep:rustyline", "dep:zip", "dep:lune-std-net"]
@@ -78,8 +80,8 @@ lune-utils = { version = "0.3.4", path = "../lune-utils" }
 clap = { optional = true, version = "4.1", features = ["derive"] }
 rustyline = { optional = true, version = "17.0" }
 zip = { optional = true, version = "5.1", default-features = false, features = [
-	"bzip2",
-	"deflate",
-	"deflate64",
-	"zstd"
+    "bzip2",
+    "deflate",
+    "deflate64",
+    "zstd",
 ] }
