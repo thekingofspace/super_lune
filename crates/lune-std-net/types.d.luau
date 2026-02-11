@@ -303,6 +303,43 @@ function tcp.connect(host: string, port: number, config: (true | TcpConfig)?): T
 end
 
 --[=[
+	UDP primitives for the `net` library
+
+	Provides low-level UDP socket functionality for sending
+	and receiving raw datagram packets.
+]=]
+local udp = {}
+
+export type UdpSocket = {
+	send: (self: UdpSocket, data: string | buffer) -> (),
+	sendTo: (self: UdpSocket, data: string | buffer, host: string, port: number) -> (),
+	recv: (self: UdpSocket) -> (string, string, number),
+	localAddr: (self: UdpSocket) -> (string, number),
+	close: (self: UdpSocket) -> (),
+}
+
+--[=[
+	Binds a UDP socket to the given port.
+
+	@param port The port to bind to
+	@return A UdpSocket ready to receive datagrams
+]=]
+function udp.bind(port: number): UdpSocket
+	return nil :: any
+end
+
+--[=[
+	Creates a UDP socket connected to a specific remote host.
+
+	@param host The remote host
+	@param port The remote port
+	@return A connected UdpSocket
+]=]
+function udp.connect(host: string, port: number): UdpSocket
+	return nil :: any
+end
+
+--[=[
 	@class Net
 
 	Built-in library for network access
@@ -348,6 +385,7 @@ end
 local net = {}
 
 net.tcp = tcp
+net.udp = udp
 
 --[=[
 	@within Net

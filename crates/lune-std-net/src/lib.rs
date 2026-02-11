@@ -9,7 +9,7 @@ pub(crate) mod server;
 pub(crate) mod shared;
 pub(crate) mod url;
 
-use crate::shared::{hyper::HyperExecutor, tcp::Tcp};
+use crate::shared::{hyper::HyperExecutor, tcp::Tcp, udp::Udp};
 
 use self::{
     client::{stream::WsStream, tcp::TcpConfig},
@@ -21,9 +21,6 @@ pub use self::client::fetch;
 
 const TYPEDEFS: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/types.d.luau"));
 
-/**
-    Returns a string containing type definitions for the `net` standard library.
-*/
 #[must_use]
 pub fn typedefs() -> String {
     TYPEDEFS.to_string()
@@ -52,6 +49,11 @@ pub fn module(lua: Lua) -> LuaResult<LuaTable> {
         .with_async_function("connect", net_ws_connect)?
         .build_readonly()?;
 
+    let submodule_udp = TableBuilder::new(lua.clone())?
+        .with_async_function("bind", net_udp_bind)?
+        .with_async_function("connect", net_udp_connect)?
+        .build_readonly()?;
+
     TableBuilder::new(lua)?
         .with_async_function("request", net_http_request)?
         .with_async_function("socket", net_ws_connect)?
@@ -61,6 +63,7 @@ pub fn module(lua: Lua) -> LuaResult<LuaTable> {
         .with_value("http", submodule_http)?
         .with_value("tcp", submodule_tcp)?
         .with_value("ws", submodule_ws)?
+        .with_value("udp", submodule_udp)? // ← NEW
         .build_readonly()
 }
 
@@ -77,10 +80,17 @@ async fn net_http_serve(lua: Lua, (port, config): (u16, ServeConfig)) -> LuaResu
 async fn net_tcp_connect(_: Lua, (host, port, config): (String, u16, TcpConfig)) -> LuaResult<Tcp> {
     self::client::connect_tcp(host, port, config).await
 }
-
 async fn net_ws_connect(_: Lua, url: String) -> LuaResult<Websocket<WsStream>> {
     let url = url.parse().into_lua_err()?;
     self::client::connect_ws(url).await
+}
+
+async fn net_udp_bind(_: Lua, port: u16) -> LuaResult<Udp> {
+    Udp::bind(port).await
+}
+
+async fn net_udp_connect(_: Lua, (host, port): (String, u16)) -> LuaResult<Udp> {
+    Udp::connect(host, port).await
 }
 
 fn net_url_encode(

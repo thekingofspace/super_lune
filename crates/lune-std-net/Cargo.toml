@@ -15,6 +15,8 @@ workspace = true
 [dependencies]
 mlua = { version = "0.11.4", features = ["luau"] }
 mlua-luau-scheduler = { version = "0.2.3", path = "../mlua-luau-scheduler" }
+tokio = { version = "1", features = ["rt-multi-thread", "net"] }
+once_cell = "1"
 
 async-channel = "2.3"
 async-executor = "1.13"
@@ -29,9 +31,17 @@ futures = { version = "0.3", default-features = false, features = ["std"] }
 futures-lite = "2.6"
 futures-rustls = "0.26"
 http-body-util = "0.1"
-hyper = { version = "1.6", default-features = false, features = ["http1", "client", "server"] }
+hyper = { version = "1.6", default-features = false, features = [
+    "http1",
+    "client",
+    "server",
+] }
 pin-project-lite = "0.2"
-rustls = { version = "0.23", default-features = false, features = ["std", "tls12", "ring"] }
+rustls = { version = "0.23", default-features = false, features = [
+    "std",
+    "tls12",
+    "ring",
+] }
 rustls-pki-types = "1.11"
 url = "2.5"
 urlencoding = "2.1"
