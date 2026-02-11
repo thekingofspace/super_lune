@@ -9,7 +9,11 @@ pub(crate) mod server;
 pub(crate) mod shared;
 pub(crate) mod url;
 
-use crate::shared::{hyper::HyperExecutor, tcp::Tcp, udp::Udp};
+use crate::shared::{
+    hyper::HyperExecutor,
+    tcp::{Tcp, TcpHost},
+    udp::Udp,
+};
 
 use self::{
     client::{stream::WsStream, tcp::TcpConfig},
@@ -43,6 +47,7 @@ pub fn module(lua: Lua) -> LuaResult<LuaTable> {
 
     let submodule_tcp = TableBuilder::new(lua.clone())?
         .with_async_function("connect", net_tcp_connect)?
+        .with_async_function("host", net_tcp_host)?
         .build_readonly()?;
 
     let submodule_ws = TableBuilder::new(lua.clone())?
@@ -91,6 +96,10 @@ async fn net_udp_bind(_: Lua, port: u16) -> LuaResult<Udp> {
 
 async fn net_udp_connect(_: Lua, (host, port): (String, u16)) -> LuaResult<Udp> {
     Udp::connect(host, port).await
+}
+
+async fn net_tcp_host(_: Lua, (host, port): (String, u16)) -> LuaResult<TcpHost> {
+    TcpHost::new(host, port).await.into_lua_err()
 }
 
 fn net_url_encode(

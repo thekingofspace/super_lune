@@ -278,6 +278,51 @@ export type TcpStream = {
 }
 
 --[=[
+	@interface TcpServer
+	@within Net
+
+	A TCP server that listens for incoming connections.
+
+	### Example Usage
+
+	```luau
+	local net = require("@lune/net")
+
+	local server = net.tcp.host("0.0.0.0", 4829)
+
+	while true do
+		local client = server:accept()
+		print("New connection from", client.remoteIp)
+
+		client:write("hello from server")
+	end
+	```
+]=]
+export type TcpServer = {
+	--[=[
+		The local IP address the server is bound to.
+	]=]
+	localIp: string,
+	--[=[
+		The local port the server is bound to.
+	]=]
+	localPort: number,
+	--[=[
+		Accepts a new incoming connection.
+
+		- Yields until a client connects.
+		- Returns a `TcpStream` representing the client.
+	]=]
+	accept: (self: TcpServer) -> TcpStream,
+	--[=[
+		Closes the server socket.
+
+		No further connections can be accepted after this.
+	]=]
+	close: (self: TcpServer) -> (),
+}
+
+--[=[
 	TCP primitives for the `net` library
 
 	Provides low-level TCP socket functionality for creating custom network
@@ -299,6 +344,19 @@ local tcp = {}
 	@return A connected TcpStream ready for reading and writing
 ]=]
 function tcp.connect(host: string, port: number, config: (true | TcpConfig)?): TcpStream
+	return nil :: any
+end
+
+--[=[
+	Starts a TCP server listening on the given host and port.
+
+	Will throw an error if binding fails.
+
+	@param host The address to bind to (e.g. "127.0.0.1", "0.0.0.0")
+	@param port The port to listen on
+	@return A TcpServer ready to accept connections
+]=]
+function tcp.host(host: string, port: number): TcpServer
 	return nil :: any
 end
 
