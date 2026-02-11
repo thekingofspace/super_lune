@@ -2035,6 +2035,7 @@ dependencies = [
  "lune-std-datetime",
  "lune-std-fs",
  "lune-std-luau",
+ "lune-std-memory",
  "lune-std-mongo",
  "lune-std-net",
  "lune-std-process",
@@ -2079,6 +2080,15 @@ version = "0.3.4"
 dependencies = [
  "lune-utils",
  "mlua",
+]
+
+[[package]]
+name = "lune-std-memory"
+version = "0.3.4"
+dependencies = [
+ "lune-utils",
+ "mlua",
+ "parking_lot",
 ]
 
 [[package]]

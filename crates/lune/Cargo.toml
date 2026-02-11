@@ -31,6 +31,7 @@ std-serde = ["dep:lune-std", "lune-std/serde"]
 std-stdio = ["dep:lune-std", "lune-std/stdio"]
 std-task = ["dep:lune-std", "lune-std/task"]
 std-mongo = ["dep:lune-std", "lune-std/mongo"]
+std-memory = ["dep:lune-std", "lune-std/memory"]
 
 std = [
     "std-datetime",
@@ -44,6 +45,7 @@ std = [
     "std-stdio",
     "std-task",
     "std-mongo",
+    "std-memory",
 ]
 
 cli = ["dep:clap", "dep:rustyline", "dep:zip", "dep:lune-std-net"]

@@ -366,6 +366,7 @@ impl Runtime {
             feature = "std-stdio",
             feature = "std-task",
             feature = "std-mongo",
+            feature = "std-memory",
         ))]
         {
             lune_std::inject_std(self.lua.clone())?;
