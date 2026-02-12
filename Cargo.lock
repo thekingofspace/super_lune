@@ -2223,6 +2223,7 @@ dependencies = [
 name = "lune-std-task"
 version = "0.3.4"
 dependencies = [
+ "async-channel",
  "async-io",
  "futures-lite",
  "lune-utils",

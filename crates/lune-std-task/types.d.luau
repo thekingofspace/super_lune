@@ -1,7 +1,7 @@
 --[=[
 	@class Task
 
-	Built-in task scheduler & thread spawning
+	Built-in task scheduler, thread spawning & multi-core worker threads.
 
 	### Example usage
 
@@ -25,9 +25,110 @@
 	end)
 
 	print("Running after task.spawn yields")
+
+	-- True multi-core worker
+	local worker = task.parallel([[
+		while true do
+			local a, b = task.pop()
+			task.push(a * b)
+		end
+	]])
+
+	worker:Push(4, 5)
+	task.wait(0.1)
+	print(worker:Pop()) -- 20
 	```
 ]=]
+
+export type ParallelTask = {
+	Push: (self: ParallelTask, ...any) -> (),
+	Pop: (self: ParallelTask) -> ...any,
+}
+
 local task = {}
+
+--[=[
+	@class ParallelTask
+
+	Represents a worker running in a separate Lua VM
+	on its own CPU thread.
+
+	Communication is done using `:Push(...)` and `:Pop()`.
+
+	⚠️ Workers do not share state with the main VM.
+	Only primitive values and tables are supported.
+]=]
+local ParallelTask = {}
+
+--[=[
+	@within ParallelTask
+
+	Sends values into the worker thread.
+
+	Supported types:
+	• nil
+	• boolean
+	• number
+	• string
+	• tables (recursive)
+
+	Unsupported:
+	• functions
+	• userdata
+	• threads
+]=]
+function ParallelTask:Push(...: any) end
+
+--[=[
+	@within ParallelTask
+
+	Attempts to receive values sent back from the worker.
+
+	Errors if no values are available.
+]=]
+function ParallelTask:Pop(): ...any
+	return nil :: any
+end
+
+--[=[
+	@within Task
+
+	Creates a new multi-core worker thread.
+
+	The provided string is executed inside a new,
+	isolated Lua VM on a separate OS thread.
+
+	Inside the worker:
+	• `task.pop()` receives values
+	• `task.push(...)` sends values back
+
+	@param script Lua source code string
+	@return ParallelTask handle
+]=]
+function task.parallel(script: string): ParallelTask
+	return nil :: any
+end
+
+--[=[
+	@within Task
+
+	Receives values inside a worker thread.
+
+	⚠️ Only valid inside a `task.parallel` worker.
+]=]
+function task.pop(): ...any
+	return nil :: any
+end
+
+--[=[
+	@within Task
+
+	Sends values from inside a worker thread back
+	to the main thread.
+
+	⚠️ Only valid inside a `task.parallel` worker.
+]=]
+function task.push(...: any) end
 
 --[=[
 	@within Task
@@ -55,10 +156,15 @@ end
 
 	Delays a thread or function to run after `duration` seconds.
 
+	@param duration Delay duration in seconds
 	@param functionOrThread The function or thread to delay
 	@return The thread that will be delayed
 ]=]
-function task.delay<T...>(duration: number, functionOrThread: thread | (T...) -> ...any, ...: T...): thread
+function task.delay<T...>(
+	duration: number,
+	functionOrThread: thread | (T...) -> ...any,
+	...: T...
+): thread
 	return nil :: any
 end
 
@@ -82,8 +188,8 @@ end
 
 	Waits for *at least* the given amount of time.
 
-	The minimum wait time possible when using `task.wait` is limited by the underlying OS sleep implementation.
-	For most systems this means `task.wait` is accurate down to about 5 milliseconds or less.
+	The minimum wait time possible when using `task.wait`
+	is limited by the underlying OS sleep implementation.
 
 	@param duration The amount of time to wait
 	@return The exact amount of time waited
