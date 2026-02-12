@@ -1,15 +1,3 @@
-OH you want a **Super Lune** variant of the README? Say less. Let’s make it feel like the evolved form 😌🌑
-
-Since Super Lune:
-
-- Can pull **prebuilt releases**
-- Or can **build from source via `cargo build`**
-- Is derived from normal Lune
-- Probably targets power users / dev workflows
-
-Here’s a clean, polished variant based on yours 👇
-
----
 
 <!-- markdownlint-disable MD033 -->
 
