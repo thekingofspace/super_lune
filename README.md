@@ -1,48 +1,83 @@
+OH you want a **Super Lune** variant of the README? Say less. Let’s make it feel like the evolved form 😌🌑
+
+Since Super Lune:
+
+- Can pull **prebuilt releases**
+- Or can **build from source via `cargo build`**
+- Is derived from normal Lune
+- Probably targets power users / dev workflows
+
+Here’s a clean, polished variant based on yours 👇
+
+---
+
 <!-- markdownlint-disable MD033 -->
+
 <!-- markdownlint-disable MD041 -->
 
-<img align="right" width="250" src="assets/logo/tilt_svg.svg" alt="Lune logo" />
+<img align="right" width="250" src="assets/logo/tilt_svg.svg" alt="Super Lune logo" />
 
-<h1 align="center">Lune</h1>
+<h1 align="center">Super Lune</h1>
 
 <div align="center">
 	<div>
-		<a href="https://crates.io/crates/lune">
-			<img src="https://img.shields.io/crates/v/lune.svg?label=Version" alt="Current Lune library version" />
+		<a href="https://github.com/your-org/super-lune/releases">
+			<img src="https://img.shields.io/github/v/release/your-org/super-lune?label=Release" alt="Latest Super Lune release" />
 		</a>
-		<a href="https://github.com/lune-org/lune/actions">
-			<img src="https://shields.io/endpoint?url=https://badges.readysetplay.io/workflow/lune-org/lune/ci.yaml" alt="CI status" />
+		<a href="https://github.com/your-org/super-lune/actions">
+			<img src="https://shields.io/endpoint?url=https://badges.readysetplay.io/workflow/your-org/super-lune/ci.yaml" alt="CI status" />
 		</a>
-		<a href="https://github.com/lune-org/lune/actions">
-			<img src="https://shields.io/endpoint?url=https://badges.readysetplay.io/workflow/lune-org/lune/release.yaml" alt="Release status" />
-		</a>
-		<a href="https://github.com/lune-org/lune/blob/main/LICENSE.txt">
-			<img src="https://img.shields.io/github/license/lune-org/lune.svg?label=License&color=informational" alt="Lune license" />
+		<a href="https://github.com/your-org/super-lune/blob/main/LICENSE.txt">
+			<img src="https://img.shields.io/github/license/your-org/super-lune.svg?label=License&color=informational" alt="License" />
 		</a>
 	</div>
 </div>
 
 <br/>
 
-A standalone [Luau](https://luau-lang.org) runtime.
+A evolution of [Lune](https://github.com/lune-org/lune), the standalone [Luau](https://luau-lang.org) runtime.
 
-Write and run programs, similar to runtimes for other languages such as [Node](https://nodejs.org), [Deno](https://deno.land), [Bun](https://bun.sh), or [Luvit](https://luvit.io) for vanilla Lua.
+Super Lune builds on Lune’s asynchronous, Rust-powered foundation — adding enhanced development workflows, build flexibility, and deeper integration capabilities. with stuff like mongo, UDP, TCP, multithreading and more.
 
-Lune provides fully asynchronous APIs wherever possible, and is built in Rust 🦀 for speed, safety and correctness.
+---
 
-## Features
+## Installation
 
-- 🌙 Strictly minimal but powerful interface that is easy to read and remember, just like Luau itself
-- 🧰 Fully featured APIs for the filesystem, networking, stdio, all included in the small (~5mb zipped) executable
-- 📚 World-class documentation, on the web _or_ directly in your editor, no network connection necessary
-- 🏡 Familiar runtime environment for Roblox developers, with an included 1-to-1 task scheduler port
-- ✏️ Optional built-in library for manipulating Roblox place & model files, and their instances
+Super Lune can be used in two ways:
 
-## Non-goals
+### 📦 Option 1 — Use Prebuilt Releases
 
-- Making programs short and terse - proper autocomplete / intellisense make using Lune just as quick, and readability is important
-- Running full Roblox games outside of Roblox - there is some compatibility, but Lune is meant for different purposes
+Download the latest binary from:
 
-## Where do I start?
+```
+https://github.com/thekingofspace/super_lune/releases
+```
 
-Head over to the [Installation](https://lune-org.github.io/docs/getting-started/1-installation) page to get started using Lune!
+Extract and run directly:
+
+```bash
+[super lune exe] run script.luau
+```
+
+---
+
+### Option 2 — Build from Source
+
+Clone the repository:
+
+```bash
+git clone https://github.com/your-org/super-lune.git
+cd super-lune
+```
+
+Build in release mode:
+
+```bash
+cargo build --release
+```
+
+Binary will be located at:
+
+```
+target/debug
+```
