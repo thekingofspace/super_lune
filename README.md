@@ -9,14 +9,14 @@
 
 <div align="center">
 	<div>
-		<a href="https://github.com/your-org/super-lune/releases">
-			<img src="https://img.shields.io/github/v/release/your-org/super-lune?label=Release" alt="Latest Super Lune release" />
+		<a href="https://github.com/thekingofspace/super_lune/releases">
+			<img src="https://img.shields.io/github/v/release/thekingofspace/super_lune?label=Release" alt="Latest Super Lune release" />
 		</a>
-		<a href="https://github.com/your-org/super-lune/actions">
-			<img src="https://shields.io/endpoint?url=https://badges.readysetplay.io/workflow/your-org/super-lune/ci.yaml" alt="CI status" />
+		<a href="https://github.com/thekingofspace/super_lune/actions">
+			<img src="https://shields.io/endpoint?url=https://badges.readysetplay.io/workflow/thekingofspace/super_lune/ci.yaml" alt="CI status" />
 		</a>
-		<a href="https://github.com/your-org/super-lune/blob/main/LICENSE.txt">
-			<img src="https://img.shields.io/github/license/your-org/super-lune.svg?label=License&color=informational" alt="License" />
+		<a href="https://github.com/thekingofspace/super_lune/blob/main/LICENSE.txt">
+			<img src="https://img.shields.io/github/license/thekingofspace/super_lune.svg?label=License&color=informational" alt="License" />
 		</a>
 	</div>
 </div>
@@ -54,8 +54,8 @@ Extract and run directly:
 Clone the repository:
 
 ```bash
-git clone https://github.com/your-org/super-lune.git
-cd super-lune
+git clone https://github.com/thekingofspace/super_lune.git
+cd super_lune
 ```
 
 Build in release mode:
