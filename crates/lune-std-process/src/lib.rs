@@ -1,8 +1,9 @@
 #![allow(clippy::cargo_common_metadata)]
-
+#![allow(clippy::manual_let_else)]
 use std::{
     env::consts::{ARCH, OS},
-    path::MAIN_SEPARATOR,
+    fs,
+    path::{MAIN_SEPARATOR, PathBuf},
     process::Stdio,
 };
 
@@ -23,12 +24,43 @@ use self::options::ProcessSpawnOptions;
 
 const TYPEDEFS: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/types.d.luau"));
 
-/**
-    Returns a string containing type definitions for the `process` standard library.
-*/
 #[must_use]
 pub fn typedefs() -> String {
     TYPEDEFS.to_string()
+}
+
+fn load_dotenv_into_table(_: &Lua, env_table: &LuaTable) -> LuaResult<()> {
+    let cwd = get_current_dir();
+    let dotenv_path: PathBuf = cwd.join(".env");
+
+    if !dotenv_path.exists() {
+        return Ok(());
+    }
+
+    let contents = match fs::read_to_string(&dotenv_path) {
+        Ok(c) => c,
+        Err(_) => return Ok(()),
+    };
+
+    for line in contents.lines() {
+        let line = line.trim();
+
+        // Skip empty lines and comments
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+
+        if let Some((key, value)) = line.split_once('=') {
+            let key = key.trim();
+            let value = value.trim();
+
+            if !key.is_empty() {
+                env_table.set(key, value)?;
+            }
+        }
+    }
+
+    Ok(())
 }
 
 /**
@@ -44,11 +76,11 @@ pub fn module(lua: Lua) -> LuaResult<LuaTable> {
         .to_str()
         .expect("cwd should be valid UTF-8")
         .to_string();
+
     if !cwd_str.ends_with(MAIN_SEPARATOR) {
         cwd_str.push(MAIN_SEPARATOR);
     }
 
-    // Create constants for OS & processor architecture
     let os = lua.create_string(OS.to_lowercase())?;
     let arch = lua.create_string(ARCH.to_lowercase())?;
     let endianness = lua.create_string(if cfg!(target_endian = "big") {
@@ -57,24 +89,23 @@ pub fn module(lua: Lua) -> LuaResult<LuaTable> {
         "little"
     })?;
 
-    // Extract stored userdatas for args + env, the runtime struct
-    // should always contain and then provide through lua app data
     let process_args = lua
         .app_data_ref::<ProcessArgs>()
         .ok_or_else(|| LuaError::runtime("Missing process args in Lua app data"))?
         .into_plain_lua_table(lua.clone())?;
+
     let process_env = lua
         .app_data_ref::<ProcessEnv>()
         .ok_or_else(|| LuaError::runtime("Missing process env in Lua app data"))?
         .into_plain_lua_table(lua.clone())?;
 
+    load_dotenv_into_table(&lua, &process_env)?;
+
     process_args.set_readonly(true);
 
-    // Create our process exit function, the scheduler crate provides this
     let fns = Functions::new(lua.clone())?;
     let process_exit = fns.exit;
 
-    // Create the full process table
     TableBuilder::new(lua)?
         .with_value("os", os)?
         .with_value("arch", arch)?
