@@ -87,7 +87,7 @@ export type File = {
 		@param position Byte offset
 		@return The decoded value
 	]=]
-	read: (self: File, position: number) -> any,
+	read: (self: File, position: number, typeId: FileTypeId) -> any,
 
 	--[=[
 		Writes a value into a structured safe slot.

@@ -44,11 +44,9 @@ impl FileObject {
         }
     }
 
-    fn write_typed(&self, lua: &Lua, pos: usize, type_id: u8, value: LuaValue) -> LuaResult<()> {
+    fn write_raw(&self, lua: &Lua, pos: usize, type_id: u8, value: LuaValue) -> LuaResult<()> {
         let mut raw = self.raw_region.lock().unwrap();
-
         let mut bytes = Vec::new();
-        bytes.push(type_id);
 
         match type_id {
             TYPE_I8 => bytes.push(lua.unpack::<i8>(value)? as u8),
@@ -72,80 +70,75 @@ impl FileObject {
             _ => return Err(LuaError::external("Invalid type id")),
         }
 
-        if raw.len() < pos {
-            raw.resize(pos, 0);
-        }
-
         if raw.len() < pos + bytes.len() {
             raw.resize(pos + bytes.len(), 0);
         }
 
         raw[pos..pos + bytes.len()].copy_from_slice(&bytes);
-
         Ok(())
     }
 
-    fn read_typed(&self, lua: &Lua, pos: usize) -> LuaResult<LuaValue> {
+    fn read_raw(&self, lua: &Lua, pos: usize, type_id: u8) -> LuaResult<LuaValue> {
         let raw = self.raw_region.lock().unwrap();
 
         if pos >= raw.len() {
             return Ok(LuaValue::Nil);
         }
 
-        let mut cursor = pos;
-        let type_id = raw[cursor];
-        cursor += 1;
-
         let value = match type_id {
-            TYPE_I8 => LuaValue::Integer(raw[cursor] as i8 as i64),
-            TYPE_U8 => LuaValue::Integer(raw[cursor] as i64),
+            TYPE_I8 => LuaValue::Integer(raw[pos] as i8 as i64),
+            TYPE_U8 => LuaValue::Integer(raw[pos] as i64),
             TYPE_I16 => {
                 let mut arr = [0u8; 2];
-                arr.copy_from_slice(&raw[cursor..cursor + 2]);
+                arr.copy_from_slice(&raw[pos..pos + 2]);
                 LuaValue::Integer(i16::from_le_bytes(arr) as i64)
             }
             TYPE_U16 => {
                 let mut arr = [0u8; 2];
-                arr.copy_from_slice(&raw[cursor..cursor + 2]);
+                arr.copy_from_slice(&raw[pos..pos + 2]);
                 LuaValue::Integer(u16::from_le_bytes(arr) as i64)
             }
             TYPE_I32 => {
                 let mut arr = [0u8; 4];
-                arr.copy_from_slice(&raw[cursor..cursor + 4]);
+                arr.copy_from_slice(&raw[pos..pos + 4]);
                 LuaValue::Integer(i32::from_le_bytes(arr) as i64)
             }
             TYPE_U32 => {
                 let mut arr = [0u8; 4];
-                arr.copy_from_slice(&raw[cursor..cursor + 4]);
+                arr.copy_from_slice(&raw[pos..pos + 4]);
                 LuaValue::Integer(u32::from_le_bytes(arr) as i64)
             }
             TYPE_I64 => {
                 let mut arr = [0u8; 8];
-                arr.copy_from_slice(&raw[cursor..cursor + 8]);
+                arr.copy_from_slice(&raw[pos..pos + 8]);
                 LuaValue::Integer(i64::from_le_bytes(arr))
             }
             TYPE_U64 => {
                 let mut arr = [0u8; 8];
-                arr.copy_from_slice(&raw[cursor..cursor + 8]);
+                arr.copy_from_slice(&raw[pos..pos + 8]);
                 LuaValue::Integer(u64::from_le_bytes(arr) as i64)
             }
             TYPE_F32 => {
                 let mut arr = [0u8; 4];
-                arr.copy_from_slice(&raw[cursor..cursor + 4]);
+                arr.copy_from_slice(&raw[pos..pos + 4]);
                 LuaValue::Number(f32::from_le_bytes(arr) as f64)
             }
             TYPE_F64 => {
                 let mut arr = [0u8; 8];
-                arr.copy_from_slice(&raw[cursor..cursor + 8]);
+                arr.copy_from_slice(&raw[pos..pos + 8]);
                 LuaValue::Number(f64::from_le_bytes(arr))
             }
-            TYPE_BOOL => LuaValue::Boolean(raw[cursor] == 1),
+            TYPE_BOOL => LuaValue::Boolean(raw[pos] == 1),
             TYPE_STRING => {
                 let mut len_arr = [0u8; 4];
-                len_arr.copy_from_slice(&raw[cursor..cursor + 4]);
-                cursor += 4;
+                len_arr.copy_from_slice(&raw[pos..pos + 4]);
                 let len = u32::from_le_bytes(len_arr) as usize;
-                let data = &raw[cursor..cursor + len];
+                let start = pos + 4;
+                let end = start + len;
+                if end > raw.len() {
+                    return Ok(LuaValue::Nil);
+                }
+                let data = &raw[start..end];
                 LuaValue::String(lua.create_string(data)?)
             }
             _ => return Err(LuaError::external("Invalid type id")),
@@ -156,17 +149,14 @@ impl FileObject {
 
     fn safe_write(&self, lua: &Lua, slot: u32, value: LuaValue) -> LuaResult<()> {
         let mut safe = self.safe_region.lock().unwrap();
-
         let mut bytes = Vec::new();
         Self::encode_safe_value(lua, value, &mut bytes)?;
         safe.insert(slot, bytes);
-
         Ok(())
     }
 
     fn safe_read(&self, lua: &Lua, slot: u32) -> LuaResult<LuaValue> {
         let safe = self.safe_region.lock().unwrap();
-
         if let Some(bytes) = safe.get(&slot) {
             Self::decode_safe_value(lua, bytes)
         } else {
@@ -242,7 +232,6 @@ impl FileObject {
         let mut out = Vec::new();
         out.extend_from_slice(&(raw.len() as u32).to_le_bytes());
         out.extend_from_slice(&raw);
-
         out.extend_from_slice(&(safe.len() as u32).to_le_bytes());
 
         for (slot, data) in safe.iter() {
@@ -307,11 +296,13 @@ impl LuaUserData for FileObject {
         methods.add_method(
             "write",
             |lua, this, (pos, type_id, value): (usize, u8, LuaValue)| {
-                this.write_typed(lua, pos, type_id, value)
+                this.write_raw(lua, pos, type_id, value)
             },
         );
 
-        methods.add_method("read", |lua, this, pos: usize| this.read_typed(lua, pos));
+        methods.add_method("read", |lua, this, (pos, type_id): (usize, u8)| {
+            this.read_raw(lua, pos, type_id)
+        });
 
         methods.add_method("safeWrite", |lua, this, (slot, value): (u32, LuaValue)| {
             this.safe_write(lua, slot, value)
