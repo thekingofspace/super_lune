@@ -4,7 +4,7 @@
 	@type FilePrimitive
 	@within File
 
-	Primitive values supported by the File library.
+	Primitive values supported by the SAFE region.
 ]=]
 export type FilePrimitive = nil | boolean | number | string
 
@@ -12,116 +12,105 @@ export type FilePrimitive = nil | boolean | number | string
 	@type FileValue
 	@within File
 
-	Values that can be written to a File.
+	Values that can be written using safeWrite.
 
 	Supports:
 	* nil
 	* boolean
 	* number
 	* string
-	* nested tables containing supported values
 ]=]
-export type FileValue = FilePrimitive | { [FileValue]: FileValue }
+export type FileValue = FilePrimitive
+
+--[=[
+	@type FileTypeId
+	@within File
+
+	Type identifiers used for raw typed writes.
+]=]
+export type FileTypeId = number -- provided by file.types (i8, u8, i16, etc.)
+
+--[=[
+	@class FileTypes
+	@within File
+
+	Primitive binary types available for raw memory writes.
+]=]
+export type FileTypes = {
+	i8: number,
+	u8: number,
+	i16: number,
+	u16: number,
+	i32: number,
+	u32: number,
+	i64: number,
+	u64: number,
+	f32: number,
+	f64: number,
+	bool: number,
+	string: number,
+}
 
 --[=[
 	@class File
 
 	Binary memory-backed file object.
 
-	This object allows writing Lua values at specific byte
-	positions and later reading them back.
+	Supports two systems:
 
-	Data can be serialized into a raw byte string and written
-	to disk using the `fs` library.
-
-	### Example usage
-
-	```lua
-	local file = require("@lune/file")
-
-	local f = file.new()
-
-	f:write(0, {
-		name = "Raikin",
-		level = 42,
-	})
-
-	local data = f:read(0)
-
-	print(data.name) -- Raikin
-
-	local raw = f:serialize()
-	```
+	1) Raw typed writes (fast, manual layout control)
+	2) Safe slot writes (structured, non-overlapping)
 ]=]
 export type File = {
 	--[=[
-		Writes a value to the file at a given byte position.
+		Writes a typed value at a specific byte offset.
 
-		This is a **raw memory write** operation.
+		This is a raw binary write and requires a type id
+		from `file.types`.
 
-		If the position overlaps with existing serialized data,
-		that data may become corrupted. This method is faster
-		and intended for advanced usage where byte layout is
-		managed manually.
+		Example:
+		```lua
+		f:write(0, file.types.i32, 123)
+		```
 
-		If the position exceeds the current file size,
-		the internal buffer will automatically expand.
-
-		@param position The byte offset to write at
-		@param value The value to write
+		@param position Byte offset
+		@param typeId Type from file.types
+		@param value Value matching that type
 	]=]
-	write: (self: File, position: number, value: FileValue) -> (),
+	write: (self: File, position: number, typeId: FileTypeId, value: any) -> (),
 
 	--[=[
-		Reads a value from a given byte position.
+		Reads a typed value from a byte offset.
 
-		This is a **raw memory read** operation.
+		The type is inferred from the stored type header.
 
-		If the position does not contain valid serialized data,
-		nil may be returned or an error may occur if the data
-		has been corrupted by overlapping writes.
-
-		For structured access, consider using `safeRead`.
-
-		@param position The byte offset to read from
-		@return The deserialized value
+		@param position Byte offset
+		@return The decoded value
 	]=]
-	read: (self: File, position: number) -> FileValue,
+	read: (self: File, position: number) -> any,
 
 	--[=[
-		Writes a value into a structured slot.
+		Writes a value into a structured safe slot.
 
-		This is a **safe indexed write** operation.
+		Values stored here will never overlap.
 
-		Values written using `safeWrite` will never overlap
-		or corrupt other stored values.
-
-		This method is slower than `write` because it
-		rebuilds the internal structure to maintain safety.
-
-		@param slot The logical slot index
-		@param value The value to write
+		@param slot Logical slot id
+		@param value Primitive value
 	]=]
 	safeWrite: (self: File, slot: number, value: FileValue) -> (),
 
 	--[=[
-		Reads a value from a structured slot.
+		Reads a value from a structured safe slot.
 
-		This is a **safe indexed read** operation.
-
-		If the slot does not exist, nil will be returned.
-
-		@param slot The logical slot index
-		@return The stored value or nil
+		@param slot Logical slot id
+		@return Stored value or nil
 	]=]
 	safeRead: (self: File, slot: number) -> FileValue,
+
 	--[=[
-		Serializes the file's internal buffer into a raw binary string.
+		Serializes the file buffer into raw binary data.
 
-		This string may be written to disk using `fs.writeFile`
-		or transmitted over the network.
-
-		@return Raw binary data
+		@return Binary string
 	]=]
 	serialize: (self: File) -> string,
 }
@@ -131,31 +120,20 @@ export type File = {
 
 	Module entry for `@lune/file`.
 ]=]
-local file = {}
+export type FileLibrary = {
+	new: () -> File,
+	deserialize: (data: string) -> File,
 
---[=[
-	@within FileLibrary
-	@tag must_use
+	-- Available binary primitive types
+	types: FileTypes,
+}
 
-	Creates a new in-memory File object.
+local file = {} :: FileLibrary
 
-	@return A new File instance
-]=]
 function file.new(): File
 	return nil :: any
 end
 
---[=[
-	@within FileLibrary
-	@tag must_use
-
-	Deserializes raw binary data into a File object.
-
-	The input must be a string previously produced by `File:serialize()`.
-
-	@param data Raw binary data
-	@return A reconstructed File instance
-]=]
 function file.deserialize(data: string): File
 	return nil :: any
 end
