@@ -1,4 +1,3 @@
-
 <!-- markdownlint-disable MD033 -->
 
 <!-- markdownlint-disable MD041 -->
@@ -10,7 +9,7 @@
 <div align="center">
 	<div>
 		<a href="https://github.com/thekingofspace/super_lune/releases">
-			<img src="https://img.shields.io/github/v/release/thekingofspace/super_lune?label=v1.0.0" alt="Latest Super Lune release" />
+			<img src="https://img.shields.io/github/v/release/thekingofspace/super_lune?label=latest" alt="Latest Super Lune release" />
 		</a>
 		<a href="https://github.com/thekingofspace/super_lune/blob/main/LICENSE.txt">
 			<img src="https://img.shields.io/github/license/thekingofspace/super_lune.svg?label=License&color=informational" alt="License" />
