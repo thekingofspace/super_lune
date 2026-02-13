@@ -19,6 +19,7 @@ members = [
     "crates/mlua-luau-scheduler",
     "crates/lune-std-mongo",
     "crates/lune-std-memory",
+    "crates/lune-std-file",
 ]
 
 # Profile for building the release binary, with the following options set:

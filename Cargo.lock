@@ -2033,6 +2033,7 @@ dependencies = [
  "async-fs",
  "async-lock",
  "lune-std-datetime",
+ "lune-std-file",
  "lune-std-fs",
  "lune-std-luau",
  "lune-std-memory",
@@ -2060,6 +2061,14 @@ dependencies = [
  "lune-utils",
  "mlua",
  "thiserror 2.0.17",
+]
+
+[[package]]
+name = "lune-std-file"
+version = "0.3.4"
+dependencies = [
+ "lune-utils",
+ "mlua",
 ]
 
 [[package]]

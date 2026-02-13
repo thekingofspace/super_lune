@@ -15,6 +15,9 @@ export type ParallelTask = {
 
 	-- Receives values from the worker
 	Pop: (self: ParallelTask) -> ...any,
+
+	-- Closes the selected thread.
+	Close: (self: ParallelTask) -> (),
 }
 
 local task = {}

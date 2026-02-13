@@ -85,15 +85,23 @@ impl LuaUserData for ParallelTask {
             Ok(())
         });
 
-        methods.add_method("Pop", |lua, this, ()| match this.rx.try_recv() {
-            Ok(values) => {
-                let mut result = Vec::new();
-                for value in values {
-                    result.push(from_thread_value(lua, value)?);
-                }
-                Ok(LuaMultiValue::from_vec(result))
+        methods.add_method("Pop", |lua, this, ()| {
+            let values = this
+                .rx
+                .recv_blocking()
+                .map_err(|_| LuaError::external("channel closed"))?;
+
+            let mut result = Vec::new();
+            for value in values {
+                result.push(from_thread_value(lua, value)?);
             }
-            Err(_) => Err(LuaError::external("no values available")),
+
+            Ok(LuaMultiValue::from_vec(result))
+        });
+
+        methods.add_method("Close", |_, this, ()| {
+            this.tx.close();
+            Ok(())
         });
     }
 }
@@ -130,12 +138,13 @@ fn install_worker_api(
         lua.create_function(move |lua, args: LuaMultiValue| {
             let mut converted = Vec::new();
             for value in args {
-                converted.push(to_thread_value(lua, value)?);
+                converted.push(to_thread_value(&lua, value)?);
             }
 
-            tx_out
-                .send_blocking(converted)
-                .map_err(|_| LuaError::external("channel closed"))?;
+            if tx_out.send_blocking(converted).is_err() {
+                return Ok(());
+            }
+
             Ok(())
         })?,
     )?;

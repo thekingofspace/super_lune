@@ -20,6 +20,7 @@ pub enum LuneStandardLibrary {
     #[cfg(feature = "roblox")]   Roblox,
     #[cfg(feature = "mongo")]   Mongo,
     #[cfg(feature = "memory")]   Memory,
+    #[cfg(feature = "file")]   File,
 }
 
 impl LuneStandardLibrary {
@@ -40,6 +41,7 @@ impl LuneStandardLibrary {
         #[cfg(feature = "roblox")]   Self::Roblox,
         #[cfg(feature = "mongo")]   Self::Mongo,
         #[cfg(feature = "memory")]   Self::Memory,
+        #[cfg(feature = "file")]   Self::File,
     ];
 
     /**
@@ -62,6 +64,7 @@ impl LuneStandardLibrary {
             #[cfg(feature = "roblox")]   Self::Roblox   => "roblox",
             #[cfg(feature = "mongo")]   Self::Mongo   => "mongo",
             #[cfg(feature = "memory")]   Self::Memory   => "memory",
+            #[cfg(feature = "file")]   Self::File   => "file",
 
             _ => unreachable!("no standard library enabled"),
         }
@@ -87,6 +90,7 @@ impl LuneStandardLibrary {
             #[cfg(feature = "roblox")]   Self::Roblox   => lune_std_roblox::typedefs(),
             #[cfg(feature = "mongo")]   Self::Mongo   => lune_std_mongo::typedefs(),
             #[cfg(feature = "memory")]   Self::Memory   => lune_std_memory::typedefs(),
+            #[cfg(feature = "file")]   Self::File   => lune_std_file::typedefs(),
 
             _ => unreachable!("no standard library enabled"),
         }
@@ -116,6 +120,7 @@ impl LuneStandardLibrary {
             #[cfg(feature = "roblox")]   Self::Roblox   => lune_std_roblox::module(mod_lua),
             #[cfg(feature = "mongo")]   Self::Mongo   => lune_std_mongo::module(mod_lua),
             #[cfg(feature = "memory")]   Self::Memory   => lune_std_memory::module(mod_lua),
+            #[cfg(feature = "file")]   Self::File   => lune_std_file::module(mod_lua),
 
             _ => unreachable!("no standard library enabled"),
         };
@@ -147,6 +152,7 @@ impl FromStr for LuneStandardLibrary {
             #[cfg(feature = "roblox")]   "roblox"   => Self::Roblox,
             #[cfg(feature = "mongo")]   "mongo"   => Self::Mongo,
             #[cfg(feature = "memory")]   "memory"   => Self::Memory,
+            #[cfg(feature = "file")]   "file"   => Self::File,
 
             _ => {
                 return Err(format!(
